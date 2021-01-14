@@ -1,6 +1,8 @@
 package com.owaldron.meteo;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,14 +15,18 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
     public TextView txtCity,txtDate,txtTemp,txtAlt;
-    public Button btnTemp;
+    public ImageView imgIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         txtDate=findViewById(R.id.txtDate);
         txtTemp=findViewById(R.id.txtTemp);
         txtAlt=findViewById(R.id.txtAlt);
-        btnTemp=findViewById(R.id.btnTemp);
+        imgIcon=findViewById(R.id.imgIcon);
         afficher("Toronto");
     }
 
@@ -42,9 +48,29 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     JSONObject main_object=response.getJSONObject("main");
                     JSONArray array=response.getJSONArray("weather");
-                    Log.d("TEMP", "HELLO CAN YOU HEAR ME");
+                    JSONObject object = array.getJSONObject(0);
+
+                    double low =main_object.getDouble("temp_min");
+                    double high = main_object.getDouble("temp_max");
+                    double temp = main_object.getDouble("temp");
                     Log.d("array",array.toString());
-                    txtCity.setText(array.toString());
+                    String desc = object.getString("description");
+                    String icon = object.getString("icon");
+                    double humid = main_object.getDouble("humidity");
+                    double pressure = main_object.getDouble("pressure");
+
+                    Calendar calendar = Calendar.getInstance();
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEEE, MMM dd");
+                    String formatted_date=simpleDateFormat.format(calendar.getTime());
+
+                    String imageUri = "http://openweathermap.org/img/w/"+icon+".png";
+                    Uri myUri = Uri.parse(imageUri);
+                    Picasso.with(MainActivity.this).load(myUri).resize(75,75).into(imgIcon);
+
+                    txtCity.setText(city);
+                    txtTemp.setText("Temp: "+temp+"° ( "+low+"° to "+high+"° )");
+                    txtDate.setText(formatted_date);
+                    txtAlt.setText("Humidity: "+humid+"   Pressure: "+pressure+"mb");
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.d("IT CAUGHT", "ERROR IT CUAGHT");
